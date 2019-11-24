@@ -3,12 +3,12 @@
   (:require [clojure.set :as cset])
   (:require [clojure.data.priority-map :as pm]))
 
-"goal"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~goal~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn has-2048?
   [board]
-  (not (= (.indexOf board 2048) -1)))
+  (not= (.indexOf board 2048) -1))
 
-"heuristic"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~heuristic~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn score
   [board]
   (apply + board))
@@ -21,7 +21,7 @@
   [board]
   (*(score board) (count-zeros board)))
 
-"Stolen"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Stolen~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn remove-visited
   [new-states frontier visited]
   (remove (cset/union (set frontier) (set visited)) new-states))
@@ -32,14 +32,13 @@
     [node]
     (conj (generate-path came-from (get came-from node)) node)))
 
-"Make Children"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Make Children~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn make-children
   [board]
   (let [children (vector (board-left board) (board-right board) (board-up board) (board-down board))]
     (filter #(not (= % board)) children)))
 
-
-"Add Children"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Add Children~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn add-children
   [kids frontier]
   (into frontier (map (fn [kid] [kid (* -1 (score-times-zeros kid))]) kids)))
@@ -51,7 +50,6 @@
   {:goal? has-2048?
    :make-children make-children
    })
-
 
 (defn search
   [{:keys [get-next add-children]}

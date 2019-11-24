@@ -1,13 +1,12 @@
 (ns intro-to-ec.2048.game)
 
-"Setup start state"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Setup start state~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (def full-board [2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17])
 (def blank-board [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
 (def start-board [2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
-(def blank-game {:score 0
+(def blank-game {:board blank-board})
 
-                 :board blank-board})
-"Utility Functions"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Utility Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn print-board
   [board]
   (let [board (vec board)]
@@ -16,12 +15,7 @@
     (println (take 4 (subvec board 8)))
     (println (take 4 (subvec board 12)))))
 
-(defn stop-game
-  [board]
-  (println "There are no more moves possible")
-  (print-board  board))
-
-"Movement Functions"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Movement Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn process-seq
   ([xs] (process-seq (first xs) (rest xs)))
   ([last xs]
@@ -93,7 +87,7 @@
               (get-col 2 r1 r2 r3 r4)
               (get-col 3 r1 r2 r3 r4)))))
 
-"Computer Turn Code"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Computer Turn Code~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn generate
   [board]
   (let [zeroLoc (filter #(zero? (nth blank-board %)) (range 16))]
@@ -101,11 +95,10 @@
 
 (defn computer-turn
   [game]
-  {:score (game :score)
-   :board (generate (game :board))})
+  {:board (generate (game :board))})
 
 
-"Deterministic Computer Turn Code"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Deterministic Computer Turn Code~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn determanistic-generate
   [board]
   (if (== (.indexOf board 0) -1) board
@@ -115,41 +108,9 @@
   [game]
   (determanistic-generate game))
 
-"Game Loop"
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Game Loop~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
 (def game (atom (determanistic-generate blank-board)))
-
- (defn new-game 
-   []
-   (reset! game (determanistic-generate blank-board)))
-
-(defn end-game
-  []
-  (reset! game full-board))
-
-(defn up
-  [board]
-  (if (= (vec (move-up @board)) @board) ()
-  (reset! game (determanistic-computer-turn (vec (move-up @board)))))
-  (print-board @board))
-
-(defn down
-  [board]
-  (if (= (vec (move-down @board)) @board) ()
-  (reset! game (determanistic-computer-turn (vec (move-down @board)))))
-  (print-board @board))
-
-(defn left
-  [board]
-  (if (= (vec (move-left @board)) @board) ()
-  (reset! game (determanistic-computer-turn (vec (move-left @board)))))
-  (print-board @board))
-  
-(defn right
-  [board]
-  (if (= (vec (move-right @board)) @board) ()
-  (reset! game (determanistic-computer-turn (vec (move-right @board)))))
-  (print-board @board))
 
 (defn board-up
   [board]
