@@ -85,6 +85,9 @@
    :make-children make-children
    })
 
+; EXAMPLE ON HOW TO RUN, IN SUCH A WAY THAT WE CAN SEE A WRONG SOLUTION
+;(search the-magic-question the-magic-solution intro-to-ec.2048.game/start-board 62)
+
 (defn search
   [{:keys [get-next add-children]}
    {:keys [goal? make-children]}
