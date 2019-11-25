@@ -88,6 +88,11 @@
 ; EXAMPLE ON HOW TO RUN, IN SUCH A WAY THAT WE CAN SEE A WRONG SOLUTION
 ;(search the-magic-question the-magic-solution intro-to-ec.2048.game/start-board 62)
 
+; working example
+(into (sorted-map)
+      (map (fn [[k v]] [k (sort v)])
+           (clojure.set/map-invert {[4 32] -5, [2 64] -6})))
+
 (defn search
   [{:keys [get-next add-children]}
    {:keys [goal? make-children]}
@@ -95,11 +100,22 @@
   (loop [frontier (pm/priority-map start-state 10)
          came-from {start-state :start}
          num-calls 0]
-    (println num-calls ": " (first frontier) "\n")
+    
+    ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~(Use this value for the frontier)~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ;uses this solution, inverted order w/map-invert, but yet to be applied to our solution
+    ;https://stackoverflow.com/questions/40560300/sorting-vectors-in-clojure-map-of-vectors/40560347#40560347
+    (def properlySortedFrontier 
+      (into (sorted-map)
+            (map (fn [[k v]] [k (sort v)])
+                 (clojure.set/map-invert (rest frontier)))))
+
+    (println num-calls ": " (first properlySortedFrontier) "\n")
     ; (println "\n" num-calls "\n")
     ; (println (pm/priority-map frontier 10))
-    (println "\nRest: " "\n\n" (rest frontier) "\n")
+    (println "\nRest: " "\n\n" (rest properlySortedFrontier) "\n")
     (println "~~~~~~~~~~~~~~~~~")
+    ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~(END)~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
     (let [current (get-next frontier)]
       (cond
         (goal? current) (generate-path came-from current)
