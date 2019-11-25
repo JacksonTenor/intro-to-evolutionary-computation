@@ -71,14 +71,10 @@
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Add Children~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn add-children
   [kids frontier]
-  (into frontier (map (fn [kid] [kid (* -1 (score-times-zeros kid))]) kids)))
-
-(defn add-children-modified
-  [kids frontier]
-  (assoc frontier  (fn [kid] [kid (* -1 (score-times-zeros kid))]) kids) )
+  (sort-by first (into frontier (map (fn [kid] [(* -1 (score-times-zeros kid)) kid]) kids))))
 
 (def the-magic-question
-  {:get-next (fn [pmap] (first (first pmap)))
+  {:get-next (fn [pmap] (second (first pmap)))
    :add-children add-children})
 (def the-magic-solution
   {:goal? has-64?
@@ -90,33 +86,36 @@
 
 ; working example
 (into (sorted-map)
-      (map (fn [[k v]] [k (sort v)])
+      (map (fn [[k v]] [k (vec v)])
            (clojure.set/map-invert {[4 32] -5, [2 64] -6})))
 
 (defn search
   [{:keys [get-next add-children]}
    {:keys [goal? make-children]}
    start-state max-calls]
-  (loop [frontier (pm/priority-map start-state 10)
+  (loop [frontier (into (sorted-map) {10 start-state})
          came-from {start-state :start}
          num-calls 0]
     
-    ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~(Use this value for the frontier)~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ;uses this solution, inverted order w/map-invert, but yet to be applied to our solution
-    ;https://stackoverflow.com/questions/40560300/sorting-vectors-in-clojure-map-of-vectors/40560347#40560347
-    (def properlySortedFrontier 
-      (into (sorted-map)
-            (map (fn [[k v]] [k (sort v)])
-                 (clojure.set/map-invert (rest frontier)))))
-
-    (println num-calls ": " (first properlySortedFrontier) "\n")
-    ; (println "\n" num-calls "\n")
-    ; (println (pm/priority-map frontier 10))
-    (println "\nRest: " "\n\n" (rest properlySortedFrontier) "\n")
-    (println "~~~~~~~~~~~~~~~~~")
-    ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~(END)~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ; ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~(Use this value for the frontier)~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ; ;uses this solution, inverted order w/map-invert, but yet to be applied to our solution
+    ; ;https://stackoverflow.com/questions/40560300/sorting-vectors-in-clojure-map-of-vectors/40560347#40560347
+    ; (def properlySortedFrontier 
+    ;   (into (sorted-map)
+    ;         (map (fn [[k v]] [k (vec v)])
+    ;              (clojure.set/map-invert (rest frontier)))))
+    ; (println frontier)
+    ; (println num-calls ": " (first properlySortedFrontier) "\n")
+    ; ; (println "\n" num-calls "\n")
+    ; ; (println (pm/priority-map frontier 10))
+    ; (println "\nRest: " "\n\n" (rest properlySortedFrontier) "\n")
+    ; (println "~~~~~~~~~~~~~~~~~")
+    ; ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~(END)~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     (let [current (get-next frontier)]
+      (println num-calls)
+      (println current)
+      (println frontier)
       (cond
         (goal? current) (generate-path came-from current)
         (= num-calls max-calls) :max-calls-reached
