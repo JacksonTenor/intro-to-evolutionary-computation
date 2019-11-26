@@ -32,6 +32,10 @@
   [board]
   (not= (.indexOf board 8) -1))
 
+(defn has-4096?
+  [board]
+  (not= (.indexOf board 4096) -1))
+
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~heuristic~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn score
   [board]
@@ -65,17 +69,61 @@ has-2048?
   (apply + [ (* 0.8 (apply max board)) (* 0.8 (apply max board)) (* 0.1 (count-zeros board)) (* 0.1 (score-times-zeros board))  ] ))
   ; (+ (+ (apply max board) (count-zeros board)) (score-times-zeros board)) )
 
-(defn three-max
+; 0.8 0.2 (2048 NEVER in 8000!)
+
+(defn four-max-weighted
   [board]
-  (let [max-values (take 3 (sort > board))
+  (let [max-values (take 4 (sort > board))
+        first (first max-values)
+        second (second max-values)
+        third (nth max-values 2)
+        fourth (nth max-values 3)]
+    (apply + [(* 0.8 first)
+              (* 0.2 second) 
+              third
+              fourth])))
+
+;0.5 0.3 0.2 (2048 in 4328)
+;0.4 0.2 0.4 (2048 NEVER in 8000!)
+;0.4 0.4 0.2 (2048 in 4328)
+
+(defn three-max 
+  [board]
+  (let [max-values (take 4 (sort > board))
         first (first max-values)
         second (second max-values)
         third (nth max-values 2)]
-    (apply + [first 
-              second 
-              third])))
-  
- 
+    (apply + [(* 0.5 first)
+              (* 0.3 second)
+              (* 0.2 third)])))
+
+; (2048 in )
+
+(defn the-max
+  [board]
+  (let [max-values (take 4 (sort > board))
+        first (first max-values)
+        second (second max-values)
+        third (nth max-values 2)]
+    (apply + [(* 1 first)
+              (* 0 second)
+              (* 0 third)])))
+
+; 0.8 0.2 (2048 in 1989)
+; 0.7 0.3 (2048 in 1989)
+; 0.5 0.5 (2048 in 1989)
+
+(defn top-two
+  [board]
+  (let [max-values (take 4 (sort > board))
+        first (first max-values)
+        second (second max-values)
+        third (nth max-values 2)]
+    (apply + [(* 0.5 first)
+              (* 0.5 second)
+              (* 0 third)])))
+
+(defn astar [a cost] (+ (the-max a) cost))
 
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Stolen~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn remove-visited
@@ -97,13 +145,13 @@ has-2048?
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Add Children~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn add-children
   [kids frontier]
-  (sort-by first (into frontier (map (fn [kid] [(* -1 (three-max kid)) kid]) kids))))
+  (sort-by first (into frontier (map (fn [kid] [(* -1 (astar kid 2000)) kid]) kids))))
 
 (def the-magic-question
   {:get-next (fn [pmap] (second (first pmap)))
    :add-children add-children})
 (def the-magic-solution
-  {:goal? has-1024?
+  {:goal? has-2048?
    :make-children make-children
    })
 
@@ -123,15 +171,15 @@ has-2048?
          came-from {start-state :start-node}
          num-calls 0]   
     (let [current (get-next frontier)]
-      (println "-----------")
-      (println "Num- Calls: "num-calls)
-      (println (first frontier))
-      (println "Rest: ")
-      (println (first (rest frontier)))
-      (println (second (rest frontier)))
-      (println "-----------")
+      ; (println "-----------")
+      ;(println "Num- Calls: "num-calls)
+      ; (println (first frontier))
+      ; (println "Rest: ")
+      ; (println (first (rest frontier)))
+      ; (println (second (rest frontier)))
+      ; (println "-----------")
       (cond
-        (goal? current) (generate-path came-from current)
+        (goal? current) num-calls
         (= num-calls max-calls) :max-calls-reached
         :else
         (let [kids (remove-visited (make-children current) frontier (keys came-from))]
