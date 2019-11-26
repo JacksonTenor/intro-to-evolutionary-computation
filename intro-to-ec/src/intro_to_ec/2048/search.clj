@@ -74,6 +74,20 @@ has-2048?
     (apply + [first 
               second 
               third])))
+
+(defn five-max
+  [board]
+  (let [max-values (take 5 (sort > board))
+        first (first max-values)
+        second (second max-values)
+        third (nth max-values 2)
+        fourth (nth max-values 3)
+        fifth (nth max-values 4)]
+    (apply + [first
+              second
+              third
+              fourth
+              fifth])))
   
  
 
@@ -97,15 +111,23 @@ has-2048?
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Add Children~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn add-children
   [kids frontier]
-  (sort-by first (into frontier (map (fn [kid] [(* -1 (three-max kid)) kid]) kids))))
+  (sort-by first (into frontier (map (fn [kid] [(* -1 (five-max kid)) kid]) kids))))
 
 (def the-magic-question
   {:get-next (fn [pmap] (second (first pmap)))
    :add-children add-children})
 (def the-magic-solution
-  {:goal? has-1024?
+  {:goal? has-2048?
    :make-children make-children
    })
+
+;8 in 5 steps
+;16 in 10 steps
+;64 in 60 steps
+;256 in 191 steps
+;512 in 321 steps
+;1024 in 570 steps
+;2048 in 1655 steps
 
 ; EXAMPLE ON HOW TO RUN, IN SUCH A WAY THAT WE CAN SEE A WRONG SOLUTION
 ;(search the-magic-question the-magic-solution intro-to-ec.2048.game/start-board 62)
@@ -123,15 +145,15 @@ has-2048?
          came-from {start-state :start-node}
          num-calls 0]   
     (let [current (get-next frontier)]
-      (println "-----------")
-      (println "Num- Calls: "num-calls)
-      (println (first frontier))
-      (println "Rest: ")
-      (println (first (rest frontier)))
-      (println (second (rest frontier)))
-      (println "-----------")
+      ; (println "-----------")
+      ; (println "Num- Calls: "num-calls)
+      ; (println (first frontier))
+      ; (println "Rest: ")
+      ; (println (first (rest frontier)))
+      ; (println (second (rest frontier)))
+      ; (println "-----------")
       (cond
-        (goal? current) (generate-path came-from current)
+        (goal? current) num-calls
         (= num-calls max-calls) :max-calls-reached
         :else
         (let [kids (remove-visited (make-children current) frontier (keys came-from))]
