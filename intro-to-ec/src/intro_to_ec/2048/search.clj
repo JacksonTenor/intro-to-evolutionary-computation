@@ -91,7 +91,8 @@ has-2048?
   [board]
   (let [values (take 4 (sort > board))]
        (apply + values)))
-  
+
+
  
 
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Stolen~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -142,6 +143,13 @@ has-2048?
    :make-children make-children
    })
 
+;8 in 5 steps
+;16 in 10 steps
+;64 in 60 steps
+;256 in 191 steps
+;512 in 321 steps
+;1024 in 570 steps
+;2048 in 1655 steps
 
 ; EXAMPLE ON HOW TO RUN, IN SUCH A WAY THAT WE CAN SEE A WRONG SOLUTION
 ;(search the-magic-question the-magic-solution intro-to-ec.2048.game/start-board 62)
