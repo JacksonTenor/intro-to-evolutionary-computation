@@ -3,6 +3,7 @@
   (:require [clojure.set :as cset])
   (:require [clojure.data.priority-map :as pm]))
 
+
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~goal~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn has-2048?
   [board]
@@ -65,7 +66,19 @@ has-2048?
   (apply + [ (* 0.8 (apply max board)) (* 0.8 (apply max board)) (* 0.1 (count-zeros board)) (* 0.1 (score-times-zeros board))  ] ))
   ; (+ (+ (apply max board) (count-zeros board)) (score-times-zeros board)) )
 
-(defn three-max
+(defn first-five
+  [board]
+  (+ (nth board 0)
+     (nth board 1)
+     (nth board 2)
+     (nth board 3)
+     (nth board 4)))
+(defn top-five
+  [board]
+  (let [values (take 5 (sort > board))]
+       (apply + values)))
+
+(defn top-three
   [board]
   (let [max-values (take 3 (sort > board))
         first (first max-values)
@@ -74,6 +87,10 @@ has-2048?
     (apply + [first 
               second 
               third])))
+(defn top-four
+  [board]
+  (let [values (take 4 (sort > board))]
+       (apply + values)))
   
  
 
@@ -88,28 +105,46 @@ has-2048?
     [node]
     (conj (generate-path came-from (get came-from node)) node)))
 
+(defn get-path-length
+  [came-from node len]
+  (if (= :start-node (get came-from node))
+    1
+    (+ 1 (get-path-length came-from (get came-from node) len))))
+
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Make Children~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn make-children
   [board]
   (let [children (vector (board-left board) (board-right board) (board-up board) (board-down board))]
     (filter #(not (= % board)) children)))
 
+
+"~~~~~~~~~~~~~~~~~~~~~~~The holy grail of algorithms (A*)~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+(defn moves-to-end
+  [board]
+  (let [n (- (count board) 1 (count (filter zero? board)))
+        s (apply + board)]
+    (max (/ (- 512 s) 2) n)))
+
+(defn a-star
+  [board]
+  (+ (/ (score board) 2) (moves-to-end board)))
+
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Add Children~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 (defn add-children
   [kids frontier]
-  (sort-by first (into frontier (map (fn [kid] [(* -1 (three-max kid)) kid]) kids))))
+  (sort-by first (into frontier (map (fn [kid] [(* -1 (top-five kid)) kid]) kids))))
 
 (def the-magic-question
   {:get-next (fn [pmap] (second (first pmap)))
    :add-children add-children})
 (def the-magic-solution
-  {:goal? has-1024?
+  {:goal? has-2048?
    :make-children make-children
    })
 
+
 ; EXAMPLE ON HOW TO RUN, IN SUCH A WAY THAT WE CAN SEE A WRONG SOLUTION
 ;(search the-magic-question the-magic-solution intro-to-ec.2048.game/start-board 62)
-
 ; working example
 (into (sorted-map)
       (map (fn [[k v]] [k (vec v)])
@@ -123,15 +158,15 @@ has-2048?
          came-from {start-state :start-node}
          num-calls 0]   
     (let [current (get-next frontier)]
-      (println "-----------")
-      (println "Num- Calls: "num-calls)
-      (println (first frontier))
-      (println "Rest: ")
-      (println (first (rest frontier)))
-      (println (second (rest frontier)))
-      (println "-----------")
+      ; (println "-----------")
+      ; (println "Num- Calls: "num-calls)
+      ; (println (first frontier))
+      ; (println "Rest: ")
+      ;(println frontier)
+      ; (println (second (rest frontier)))
+      ; (println "-----------")
       (cond
-        (goal? current) (generate-path came-from current)
+        (goal? current) num-calls
         (= num-calls max-calls) :max-calls-reached
         :else
         (let [kids (remove-visited (make-children current) frontier (keys came-from))]
